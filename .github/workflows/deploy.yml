@@ -1,0 +1,22 @@
+name: 部署到 Firebase Hosting
+on:
+  push:
+    branches: [main]
+  workflow_dispatch: {}
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    env:
+      HAS_KEY: ${{ secrets.FIREBASE_SERVICE_ACCOUNT != '' }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: 尚未設定金鑰時略過
+        if: env.HAS_KEY != 'true'
+        run: echo "還沒設定 FIREBASE_SERVICE_ACCOUNT，略過部署"
+      - uses: FirebaseExtended/action-hosting-deploy@v0
+        if: env.HAS_KEY == 'true'
+        with:
+          repoToken: ${{ secrets.GITHUB_TOKEN }}
+          firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+          projectId: family-expence-413ad
+          channelId: live

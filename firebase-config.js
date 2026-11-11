@@ -3,7 +3,7 @@
 window.FL_CONFIG = {
   firebase: {
     apiKey: "AIzaSyCRqQGiaSBgr4uQoj6Pfh9tK6Y45wLN_38",
-    authDomain: "family-expence-413ad.firebaseapp.com",
+    authDomain: "family-expence-413ad.web.app",
     projectId: "family-expence-413ad",
     storageBucket: "family-expence-413ad.firebasestorage.app",
     messagingSenderId: "91546661383",

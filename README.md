@@ -2,7 +2,7 @@
 
 家華與太太的家庭記帳 App：即時同步、離線可記帳、Google 登入。
 
-- 網站：GitHub Pages（本儲存庫 main 分支根目錄）
+- 網站：https://family-expence-413ad.web.app （Firebase Hosting，push 到 main 後由 GitHub Actions 自動部署）
 - 資料：Firebase Firestore（`households/main`）
 - 每日備份：私人儲存庫 `family-ledger-backup`
 

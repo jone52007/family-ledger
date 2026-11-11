@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="zh-Hant-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#1c9fd7">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="家庭記帳本">
+<title>家庭記帳本</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="stylesheet" href="app.css">
+</head>
+<body>
+<div class="app">
+  <aside class="side">
+    <div class="logo"><img src="assets/PNG/Yellow/Double/star.png" alt=""><div><b>家庭記帳本</b><small class="deco">FAMILY LEDGER</small></div></div>
+    <nav class="nav" id="nav">
+      <a href="#overview" data-p="overview"><span class="ic">🏠</span>總覽</a>
+      <a href="#records" data-p="records"><span class="ic">📒</span>明細</a>
+      <a href="#settle" data-p="settle"><span class="ic">🤝</span>結算</a>
+      <a href="#fixed" data-p="fixed"><span class="ic">📌</span>固定支出</a>
+      <a href="#settings" data-p="settings"><span class="ic">⚙️</span>設定</a>
+    </nav>
+    <div class="grow"></div>
+    <div class="whoami" id="meBox"></div>
+    <div class="sync" id="syncInfo"></div>
+  </aside>
+  <main class="main" id="main"></main>
+</div>
+<div class="offline-pill" id="offlinePill">📴 離線中，記帳會在連線後自動上傳</div>
+<div class="fab"><button class="kbtn green" id="fabBtn">＋ 記一筆</button></div>
+<div class="gate" id="gate"></div>
+<div class="mask" id="mask"><div class="modal" id="modal"></div></div>
+<div class="tip" id="tip"></div>
+<div class="toast" id="toast"></div>
+<script src="firebase-config.js"></script>
+<script type="module" src="app.js"></script>
+</body>
+</html>

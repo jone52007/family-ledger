@@ -644,7 +644,7 @@ window.delRec = id => {
 function showModal(html){ $("#modal").innerHTML = html; $("#mask").classList.add("show"); document.body.classList.add("modal-open"); }
 function closeModal(){ $("#mask").classList.remove("show"); document.body.classList.remove("modal-open"); }
 window.closeModal = closeModal;
-$("#mask").addEventListener("mousedown", e => { if (e.target.id === "mask") closeModal(); });
+$("#mask")?.addEventListener("mousedown", e => { if (e.target.id === "mask") closeModal(); });
 document.addEventListener("keydown", e => { if (e.key === "Escape") closeModal(); });
 let toastT; function toast(t){ const el = $("#toast"); el.textContent = t; el.classList.add("show"); clearTimeout(toastT); toastT = setTimeout(() => el.classList.remove("show"), 2400); }
 window.toast = toast;
@@ -701,8 +701,8 @@ window.render = render;
 window.$ = $;
 window.addEventListener("hashchange", () => { sfx("tap"); if (location.hash === "#trash") loadTrash(); render(); scrollTo(0, 0); });
 window.addEventListener("online", renderStatus); window.addEventListener("offline", renderStatus);
-$("#fabBtn").addEventListener("click", () => { sfx("tap"); window.openAdd(); });
-$("#navAdd").addEventListener("click", e => { e.preventDefault(); sfx("tap"); window.openAdd(); });
+$("#fabBtn")?.addEventListener("click", () => { sfx("tap"); window.openAdd(); });
+$("#navAdd")?.addEventListener("click", e => { e.preventDefault(); sfx("tap"); window.openAdd(); });
 // 觸控裝置：點長條圖等顯示數字
 document.addEventListener("click", e => {
   if (!matchMedia("(hover:none)").matches) return;

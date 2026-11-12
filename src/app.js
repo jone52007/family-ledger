@@ -28,22 +28,15 @@ const addMonth = (ym, n) => { const [y, m] = ym.split("-").map(Number); const d 
 
 /* ---------- 預設類別 ---------- */
 const DEFAULT_CATS = [
-  ["food","餐飲","🍱","早餐 午餐 晚餐 早午餐 宵夜 便當 餐廳 小吃 麵 飯 火鍋 燒肉 拉麵 壽司 披薩 漢堡 麥當勞 肯德基 摩斯 咖啡 星巴克 路易莎 85度c 飲料 手搖 珍奶 50嵐 清心 可不可 迷客夏 茶湯會 甜點 蛋糕 麵包 外送 uber eats ubereats foodpanda 熊貓 聚餐 吃"],
-  ["grocery","買菜","🥬","全聯 家樂福 好市多 costco 美廉社 超市 菜市場 市場 買菜 蔬菜 水果 肉 豬肉 雞肉 牛肉 魚 海鮮 雞蛋 蛋 米 牛奶 鮮奶 食材 調味"],
-  ["daily","日用品","🧻","衛生紙 廚房紙巾 洗衣精 洗碗精 洗髮 沐浴 牙膏 牙刷 垃圾袋 清潔 屈臣氏 康是美 寶雅 日用品 大創 無印 7-11 711 全家 萊爾富 超商"],
-  ["traffic","交通","🚗","加油 中油 台塑 停車 停車費 捷運 公車 高鐵 台鐵 火車 計程車 uber 小黃 悠遊卡 一卡通 etc 過路 機車 汽車 保養 洗車 輪胎 牌照稅 燃料稅 youbike"],
-  ["kid","小孩","🧸","尿布 奶粉 副食品 奶瓶 玩具 童裝 童書 繪本 學費 安親 保母 托嬰 幼兒園 幼稚園 才藝 補習 文具 學校 註冊 兒童 寶寶 嬰兒 小孩"],
-  ["home","居家","🏡","水費 電費 瓦斯 天然氣 網路 第四台 管理費 房租 家具 ikea 宜得利 特力屋 維修 修理 水電 家電 燈泡 收納 窗簾"],
-  ["medical","醫療保健","💊","診所 醫院 掛號 看診 藥 藥局 牙醫 眼科 小兒科 健檢 保健 維他命 口罩 復健"],
-  ["fun","娛樂旅遊","🎡","電影 威秀 netflix disney spotify youtube 遊戲 steam switch ktv 唱歌 旅遊 旅行 住宿 飯店 民宿 訂房 機票 門票 樂園 露營 展覽 演唱會"],
-  ["shop","購物服飾","🛍️","衣服 褲子 鞋 包包 uniqlo gu zara net 蝦皮 momo pchome 博客來 網購 淘寶 酷澎 coupang 化妝品 保養品 髮廊 剪髮 美髮"],
-  ["telecom","通訊","📱","電話費 手機費 電信 中華電信 台灣大哥大 遠傳 亞太 月租 icloud google one"],
-  ["social","人情交際","🧧","紅包 禮金 喜酒 白包 禮物 送禮 伴手禮 孝親 爸媽 父母 生日"],
-  ["insurance","保險稅務","🛡️","保險 保費 壽險 醫療險 產險 稅 所得稅 房屋稅 地價稅 勞保 健保"],
-  ["learn","學習進修","📚","書 書籍 課程 線上課 hahow 講座 證照 考試 英文"],
-  ["pet","寵物","🐾","寵物 飼料 貓砂 貓 狗 獸醫 動物醫院"],
-  ["house","房貸","🏦","房貸 貸款"],
-  ["other","其他","📦",""]
+  ["food","食","🍱","早餐 午餐 晚餐 早午餐 宵夜 便當 餐廳 小吃 麵 飯 粥 火鍋 燒肉 拉麵 壽司 披薩 漢堡 麥當勞 肯德基 摩斯 subway 咖啡 星巴克 路易莎 85度c 飲料 手搖 珍奶 50嵐 清心 可不可 迷客夏 茶湯會 得正 紅茶 綠茶 烏龍茶 多多綠 甜點 點心 蛋糕 麵包 外送 eats ubereats foodpanda 熊貓 聚餐 全聯 家樂福 好市多 costco 美廉社 超市 菜市場 買菜 蔬菜 水果 食材 採買 米酒 調味 7-11 711 萊爾富 超商"],
+  ["cloth","衣","👕","衣服 褲子 外套 鞋 襪子 包包 髮圈 uniqlo gu zara net 剪髮 美髮 髮廊 化妝品 保養品 美甲"],
+  ["live","住","🏠","房貸 貸款 房租 管理費 水費 電費 瓦斯 天然氣 網路 第四台 電話費 手機費 電信 中華電信 台灣大哥大 遠傳 衛生紙 廚房紙巾 洗衣 洗碗精 洗髮 沐浴 牙膏 牙刷 垃圾袋 垃圾桶 清潔 擴香 電池 屈臣氏 康是美 寶雅 大創 無印 家具 ikea 宜得利 特力屋 維修 水電 家電 燈泡 收納 窗簾 鍋 碗 筷 刀具 砧板 保鮮盒 枕頭 置物架 標籤機"],
+  ["go","行","🚗","加油 中油 台塑 停車 停車費 捷運 公車 高鐵 台鐵 自強 火車 計程車 uber 小黃 悠遊卡 一卡通 etc 過路 通行費 國道 機車 汽車 保養 洗車 輪胎 牌照稅 燃料稅 youbike gogoro"],
+  ["edu","育","📚","書 書籍 課程 線上課 hahow 講座 證照 考試 英文 claude chatgpt"],
+  ["fun","樂","🎡","電影 威秀 netflix disney spotify youtube 遊戲 steam switch 網咖 拼圖 樂高 ktv 唱歌 旅遊 旅行 住宿 飯店 民宿 訂房 機票 門票 樂園 露營 展覽 演唱會"],
+  ["kid","小孩","🧸","尿布 奶粉 副食品 奶瓶 奶嘴 米餅 寶寶粥 濕紙巾 玩具 童裝 童書 繪本 學費 安親 保母 托嬰 幼兒園 幼稚園 才藝 文具 兒童 寶寶 嬰兒 小孩 小兒科"],
+  ["medical","醫療","💊","診所 醫院 掛號 看診 回診 藥 藥局 牙醫 眼科 健檢 保健 維他命 口罩 復健"],
+  ["other","其他","📦","紅包 禮金 喜酒 白包 禮物 送禮 伴手禮 孝親 保險 保費 稅 所得稅 房屋稅 地價稅 訂金 寵物 飼料 獸醫"]
 ].map(([id, name, icon, kw]) => ({id, name, icon, keywords:kw.split(/\s+/).filter(Boolean)}));
 const CAT_TINT = ["#fff1d6","#e3f8ec","#eef0ff","#e8f6fd","#fff4c7","#f0ebff","#ffe4e8","#e6f9f6","#fde8ff","#e5f1ff","#ffece0","#eaf3e2","#f3efe6","#fbeee6","#e8f6fd","#f1f2f7"];
 
@@ -54,9 +47,10 @@ function defaultSettings(){
     categories:DEFAULT_CATS,
     learned:{},
     fixed:[
-      {id:"fx-house", name:"房貸", icon:"🏦", cat:"house", amount:30000, day:5, payer:"joint", countMonthly:true, inSettle:false},
+      {id:"fx-house", name:"房貸", icon:"🏦", cat:"live", amount:30000, day:5, payer:"joint", countMonthly:true, inSettle:false},
       {id:"fx-kid", name:"小孩基金", icon:"🐷", cat:"kid", amount:5000, day:10, payer:"me", countMonthly:false, inSettle:false}
     ],
+    catVersion:2,
     createdAt:Date.now()
   };
 }
@@ -124,6 +118,7 @@ function startData(){
       return;
     }
     SET = Object.assign(defaultSettings(), snap.data());
+    if (!snap.metadata.fromCache && (snap.data().catVersion || 1) < 2) migrateCats();
     render();
   }, err => fatal(err)));
   unsubs.push(onSnapshot(col("fixedLog"), snap => { fixedLog = {}; snap.forEach(d => fixedLog[d.id] = d.data()); render(); }, err => fatal(err)));
@@ -183,6 +178,30 @@ function stats(ym){
   return o;
 }
 
+
+/* ---------- 類別改版（v2：食衣住行育樂＋小孩＋醫療＋其他），只會執行一次 ---------- */
+const CAT_V2_MAP = {food:"food", grocery:"food", daily:"live", home:"live", telecom:"live", house:"live",
+  traffic:"go", learn:"edu", fun:"fun", shop:"cloth", kid:"kid", medical:"medical", social:"other", insurance:"other", pet:"other", other:"other"};
+const catV2 = r => {
+  if (r.cat === "shop" && /標籤機/.test(r.desc || "")) return "live";
+  if (r.cat === "other" && /claude/i.test(r.desc || "")) return "edu";
+  return CAT_V2_MAP[r.cat] || r.cat;
+};
+let migrating = false;
+async function migrateCats(){
+  if (migrating) return; migrating = true;
+  try {
+    const snap = await getDocs(col("records"));
+    const ops = [];
+    snap.forEach(d => { const r = d.data(); const nc = catV2(r); if (nc !== r.cat) ops.push(b => b.update(d.ref, {cat:nc, catBefore:r.cat})); });
+    const learned = {}; for (const k in (SET.learned || {})) learned[k] = CAT_V2_MAP[SET.learned[k]] || SET.learned[k];
+    const fixed = (SET.fixed || []).map(f => ({...f, cat:CAT_V2_MAP[f.cat] || f.cat}));
+    for (let i = 0; i < ops.length; i += 400) { const b = writeBatch(db); ops.slice(i, i + 400).forEach(f => f(b)); await b.commit(); }
+    await updateDoc(settingsRef, {categories:DEFAULT_CATS, learned, fixed, catVersion:2, catMigratedAt:Date.now(), catMigratedBy:user?.email || ""});
+    toast(`類別已改為食衣住行育樂＋小孩、醫療、其他（轉換 ${ops.length} 筆）`);
+  } catch(e) { console.error(e); toast("類別轉換失敗：" + (e.code || e.message)); migrating = false; }
+}
+
 /* ---------- 自動判斷類別 ---------- */
 function keywordGuess(desc){
   const d = norm(desc); let best = null, len = 0;
@@ -192,7 +211,10 @@ function keywordGuess(desc){
 function guessCat(desc){
   const d = norm(desc); if (!d) return null;
   if (S.learned[d]) return {id:S.learned[d], why:"依你們之前的選擇"};
-  const k = keywordGuess(desc); if (k) return {id:k, why:"關鍵字判斷"};
+  const k = keywordGuess(desc);
+  const kidName = norm(S.members?.kid);
+  if (kidName && d.includes(kidName) && k !== "food") return {id:"kid", why:`有提到${S.members.kid}`};
+  if (k) return {id:k, why:"關鍵字判斷"};
   for (const key in S.learned) if (key.length >= 2 && d.includes(key)) return {id:S.learned[key], why:"類似之前的紀錄"};
   return null;
 }
@@ -490,7 +512,7 @@ function pageSettings(){
         <input class="inp" style="text-align:center;font-size:18px;padding:4px" value="${esc(c.icon)}" onchange="setCat(${i},'icon',this.value)">
         <input class="inp" value="${esc(c.name)}" onchange="setCat(${i},'name',this.value)">
         <input class="inp" style="font-size:13px" value="${esc((c.keywords || []).join(" "))}" placeholder="關鍵字" onchange="setCat(${i},'keywords',this.value)">
-        ${["other","house","kid"].includes(c.id) ? "<span></span>" : `<button class="iconbtn" title="刪除類別" onclick="delCat('${c.id}')"><img src="${ASSET}Red/Double/icon_cross.png" alt="刪除"></button>`}
+        ${["other","kid","medical"].includes(c.id) ? "<span></span>" : `<button class="iconbtn" title="刪除類別" onclick="delCat('${c.id}')"><img src="${ASSET}Red/Double/icon_cross.png" alt="刪除"></button>`}
       </div>`).join("")}
     </div>
   </div>`;

@@ -272,7 +272,7 @@ function pageOverview(){
     return `<div class="catlist">
       ${shown.map(r => `<div class="cl-row" ${r.fixed ? `onclick="location.hash='#fixed'"` : `onclick="openEdit('${r.id}')"`}>
         <span class="cl-d num">${Number(r.date.slice(5,7))}/${Number(r.date.slice(8))}</span>
-        <span class="cl-n">${esc(r.desc)}${r.fixed ? ' <span class="tag">固定</span>' : ""}${ovScope === "all" ? ` <span class="tag ${r.owner}">${esc(ownerName(r.owner))}</span>` : ""}</span>
+        <span class="cl-n"><span class="cl-t">${esc(r.desc)}</span>${(r.fixed || ovScope === "all") ? `<span class="cl-tags">${r.fixed ? '<span class="tag">固定</span>' : ""}${ovScope === "all" ? `<span class="tag ${r.owner}">${esc(ownerName(r.owner))}</span>` : ""}</span>` : ""}</span>
         <span class="cl-a num">${money(r.amount)}</span></div>`).join("")}
       <div class="cl-foot"><span>${list.length} 筆</span>${list.length > shown.length ? `<span>（顯示前 ${shown.length} 筆）</span>` : ""}<span class="sp"></span><a href="#" onclick="gotoCat('${id}');return false">在明細頁查看 →</a></div>
     </div>`;
@@ -750,6 +750,9 @@ $("#fabBtn")?.addEventListener("click", () => { sfx("tap"); window.openAdd(); })
   }
   btn.addEventListener("click", e => { e.preventDefault(); sfx("tap"); window.openAdd(); });
 })();
+// App 體驗：禁止雙指縮放（iOS 會忽略 user-scalable=no，所以另外擋 gesture 事件）
+["gesturestart", "gesturechange", "gestureend"].forEach(ev => document.addEventListener(ev, e => e.preventDefault(), {passive:false}));
+document.addEventListener("touchmove", e => { if (e.touches && e.touches.length > 1) e.preventDefault(); }, {passive:false});
 // 觸控裝置：點長條圖等顯示數字
 document.addEventListener("click", e => {
   if (!matchMedia("(hover:none)").matches) return;

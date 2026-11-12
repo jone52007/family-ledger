@@ -392,7 +392,10 @@ body{-webkit-tap-highlight-color:transparent;touch-action:manipulation}
 .cl-row{display:flex;align-items:center;gap:10px;padding:7px 4px;border-bottom:1px solid var(--line);font-size:14px;cursor:pointer;border-radius:8px}
 .cl-row:hover{background:#f6f7fb}
 .cl-d{width:40px;flex:none;color:var(--ink3);font-size:12px}
-.cl-n{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.cl-n{flex:1;min-width:0;display:flex;flex-direction:column;gap:3px}
+.cl-t{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.cl-tags{display:flex;gap:4px;flex-wrap:wrap}
+.cl-tags .tag{font-size:10px;padding:1px 6px}
 .cl-a{flex:none;font-size:14px}
 .cl-foot{display:flex;gap:6px;font-size:12px;color:var(--ink3);padding:8px 4px 0;align-items:center}
 .cl-foot .sp{flex:1}
@@ -403,3 +406,29 @@ body{-webkit-tap-highlight-color:transparent;touch-action:manipulation}
   .cbar.open{margin:0 -6px;padding:6px}
   .cl-row{font-size:14px;padding:9px 2px}
 }
+
+
+/* ---------- 不讓任何內容把畫面撐寬（App 體驗） ---------- */
+html{touch-action:pan-x pan-y}
+.app,.main{max-width:100%}
+.main{overflow-x:clip}
+.grid>*{min-width:0}
+.g-2{grid-template-columns:minmax(0,1.55fr) minmax(0,1fr)}
+.g-kpi{grid-template-columns:minmax(0,1.3fr) repeat(3,minmax(0,1fr))}
+.card,.rec,.fx,.cbar,.catlist,.cl-row{min-width:0;max-width:100%}
+.fx .info,.rec .info{min-width:0;overflow:hidden}
+.fx .info b,.rec .info b{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:block}
+.rec .meta,.fx .info small{overflow:hidden}
+table.tb{table-layout:fixed}
+table.tb td{overflow-wrap:anywhere}
+@media (max-width:1100px){.g-kpi{grid-template-columns:repeat(2,minmax(0,1fr))}.g-2{grid-template-columns:minmax(0,1fr)}}
+@media (max-width:860px){
+  .g-kpi{grid-template-columns:repeat(3,minmax(0,1fr))}
+  .g-half{grid-template-columns:minmax(0,1fr)}
+  .scope-bar>span:nth-child(2){min-width:0;overflow:hidden}
+  .legend span{min-width:0}
+}
+/* 三欄表格（日期／項目／金額）：日期、金額固定寬，項目吃剩下的空間 */
+table.tb tr>:first-child:nth-last-child(3){width:58px}
+table.tb tr>:last-child:nth-child(3){width:86px}
+@media (max-width:860px){table.tb tr>:first-child:nth-last-child(3){width:46px}table.tb tr>:last-child:nth-child(3){width:74px}}

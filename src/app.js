@@ -21,7 +21,7 @@ const uid = () => Math.random().toString(36).slice(2, 10) + Date.now().toString(
 const pad = n => String(n).padStart(2, "0");
 const ymOf = d => d.slice(0, 7);
 const todayStr = () => { const d = new Date(); return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`; };
-const money = n => "$" + Math.round(Number(n) || 0).toLocaleString("en-US");
+const money = n => { const v = Math.round(Number(n) || 0); return (v < 0 ? "-$" : "$") + Math.abs(v).toLocaleString("en-US"); };
 const norm = s => String(s || "").trim().toLowerCase().replace(/\s+/g, "");
 const ymLabel = ym => ym.replace("-", " / ");
 const addMonth = (ym, n) => { const [y, m] = ym.split("-").map(Number); const d = new Date(y, m - 1 + n, 1); return `${d.getFullYear()}-${pad(d.getMonth()+1)}`; };
@@ -377,7 +377,7 @@ function pageSettle(){
         <div class="card"><h3><span class="avatar av-wife sm">${esc(m.wife[0])}</span>${esc(m.wife)} 付的</h3>${table("wife")}</div>
       </div>
     </div>
-    <div class="grid" style="align-content:start">
+    <div class="grid settle-side" style="align-content:start">
       ${settleCard(st)}
       ${st.settleBase && Math.abs(st.diff) >= 1 ? (done
         ? `<div class="card" style="text-align:center"><img src="${ASSET}Green/Double/check_round_color.png" width="44" alt=""><div style="margin:8px 0 12px;font-weight:700">${ymLabel(curYM)} 已於 ${done.date} 結清</div><button class="kbtn grey sm" onclick="unsettle()">取消結清標記</button></div>`
@@ -692,6 +692,8 @@ function render(){
   const ae = document.activeElement;
   if (ae && $("#main").contains(ae) && ae.tagName === "INPUT" && ae.id !== "qInput") { ae.addEventListener("blur", () => setTimeout(render, 0), {once:true}); return; }
   $("#main").innerHTML = pages[page]();
+  const tb = $("#main .topbar");
+  if (tb && page !== "settings") tb.insertAdjacentHTML("beforeend", `<a class="m-gear" href="#settings" aria-label="設定">⚙️</a>`);
   document.querySelectorAll("#nav a").forEach(a => a.classList.toggle("on", a.dataset.p === page || (page === "trash" && a.dataset.p === "settings")));
   renderStatus();
 }
@@ -700,6 +702,18 @@ window.$ = $;
 window.addEventListener("hashchange", () => { sfx("tap"); if (location.hash === "#trash") loadTrash(); render(); scrollTo(0, 0); });
 window.addEventListener("online", renderStatus); window.addEventListener("offline", renderStatus);
 $("#fabBtn").addEventListener("click", () => { sfx("tap"); window.openAdd(); });
+$("#navAdd").addEventListener("click", e => { e.preventDefault(); sfx("tap"); window.openAdd(); });
+// 觸控裝置：點長條圖等顯示數字
+document.addEventListener("click", e => {
+  if (!matchMedia("(hover:none)").matches) return;
+  const t = e.target.closest("[data-tip]"); const tip = $("#tip");
+  if (!t) { tip.style.display = "none"; return; }
+  const r = t.getBoundingClientRect();
+  tip.textContent = t.dataset.tip; tip.style.display = "block";
+  tip.style.left = Math.max(8, Math.min(r.left + r.width / 2 - tip.offsetWidth / 2, innerWidth - tip.offsetWidth - 8)) + "px";
+  tip.style.top = Math.max(8, r.top - 40) + "px";
+  clearTimeout(window._tipT); window._tipT = setTimeout(() => tip.style.display = "none", 1800);
+});
 
 /* ---------- 啟動 ---------- */
 if (!configured) showGate("config");

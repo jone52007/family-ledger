@@ -270,3 +270,99 @@ body.modal-open{overflow:hidden}
   .topbar h1{font-size:22px}
   .set-row .k{width:100%}
 }
+
+/* ================= 手機版優化（iPhone 14 / 14 Pro Max） ================= */
+html{-webkit-text-size-adjust:100%}
+body{-webkit-tap-highlight-color:transparent;touch-action:manipulation}
+.nav-add,.m-gear{display:none}
+@media (max-width:860px){
+  /* 輸入框 16px 以上，iPhone 點擊時才不會自動放大畫面 */
+  input,select,textarea,.inp{font-size:16px !important}
+  .main{padding:0 14px calc(110px + env(safe-area-inset-bottom))}
+
+  /* 頂部列：固定在上方，標題＋月份＋設定同一列 */
+  .topbar{position:sticky;top:0;z-index:30;margin:0 -14px 14px;padding:calc(10px + env(safe-area-inset-top)) 14px 10px;
+    background:rgba(238,241,247,.92);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);flex-wrap:nowrap;gap:8px}
+  .topbar h1{font-size:20px;min-width:0;white-space:nowrap}
+  .monthnav{padding:2px 4px;gap:4px;border-width:2px}
+  .monthnav .m{font-size:14px;min-width:84px}
+  .roundbtn{width:34px;height:34px}
+  .roundbtn img{width:13px;height:13px}
+  .m-gear{display:grid;place-items:center;width:38px;height:38px;border-radius:50%;background:#fff;border:2px solid var(--grey);font-size:18px;text-decoration:none;flex:none}
+
+  /* 底部導覽：中間大的「記一筆」 */
+  .fab{display:none}
+  .side{padding:4px 4px calc(4px + env(safe-area-inset-bottom));align-items:flex-end}
+  .nav a{font-size:11px;padding:6px 2px;border-width:2px;border-radius:12px}
+  .nav a .ic{font-size:20px;width:auto}
+  .nav-settings{display:none !important}
+  .nav-add{display:flex !important;flex-direction:column;align-items:center;gap:2px;border:none !important;background:none !important;padding:0 2px 4px !important;margin-top:-22px}
+  .nav-add .plus{width:58px;height:58px;border-radius:50%;display:grid;place-items:center;color:#fff;font-size:30px;font-weight:800;line-height:1;
+    background:var(--green);border:3px solid var(--green-d);box-shadow:0 4px 0 var(--green-dd);transition:transform .06s}
+  .nav-add:active .plus{transform:translateY(3px);box-shadow:0 1px 0 var(--green-dd)}
+  .nav-add .lbl{font-size:11px;font-weight:700;color:var(--green-dd)}
+
+  /* 卡片與總覽 */
+  .card{padding:14px 14px;border-radius:16px}
+  .grid{gap:12px}
+  .g-kpi{grid-template-columns:repeat(3,1fr)}
+  .g-kpi .kpi.hero{grid-column:1/-1;padding:16px}
+  .kpi .t{font-size:12px}
+  .kpi .v{font-size:17px !important;margin-top:6px;letter-spacing:0}
+  .kpi.hero .v{font-size:32px !important}
+  .kpi .s{font-size:11px}
+  .g-kpi .kpi:not(.hero){padding:12px 10px}
+  .cbar{grid-template-columns:76px 1fr auto;gap:8px}
+  .cbar .am{font-size:13px;white-space:nowrap}
+  .legend{gap:8px 14px;font-size:12px}
+  .daily{height:120px}
+  .settle .amt{font-size:28px}
+
+  /* 結算頁：結果放最上面；日期不換行 */
+  .settle-side{order:-1}
+  table.tb td,table.tb th{padding:7px 4px}
+  table.tb td.num:first-child{white-space:nowrap;font-size:12px}
+
+  /* 明細 */
+  .filters{gap:8px}
+  .filters .seg{flex:1 1 100% !important;min-width:0 !important}
+  .filters select.inp{flex:1 1 calc(50% - 4px);min-width:0;min-height:42px;padding:6px 8px}
+  .filters input.inp{flex:1 1 100% !important;min-height:42px}
+  .rec{padding:10px;gap:10px}
+  .rec .ico{width:36px;height:36px;font-size:18px}
+  .rec .info b{font-size:15px}
+
+  /* 記一筆（底部彈出） */
+  .modal{max-height:92vh;max-height:92dvh;display:flex;flex-direction:column;padding:14px 14px 0}
+  .modal h2{margin-bottom:10px;font-size:18px}
+  .modal .field{margin-bottom:10px}
+  .modal .field>label{margin-bottom:4px;font-size:12px}
+  .amtbox{padding:2px 12px}
+  .amtbox input{font-size:30px !important;padding:4px 0}
+  .cats{grid-template-columns:repeat(5,1fr);gap:6px}
+  .cat{padding:6px 0 4px;border-width:2px;border-radius:12px;font-size:12px}
+  .cat .e{font-size:20px;margin-bottom:0}
+  .cat .ai{top:-7px;right:-4px;font-size:9px;padding:0 4px}
+  .aihint{font-size:12px;min-height:16px;margin-top:4px}
+  .seg button{min-height:40px}
+  .modal .actions{position:sticky;bottom:0;margin:6px -14px 0;padding:10px 14px calc(10px + env(safe-area-inset-bottom));background:#fff;border-top:2px solid var(--line);z-index:2}
+  .row2{gap:10px}
+
+  /* 固定支出 / 設定 */
+  .months{grid-template-columns:repeat(4,1fr);gap:8px}
+  .mon{padding:8px 4px}
+  .piggy{gap:12px}
+  .piggy .big{font-size:24px}
+  .fx{gap:10px}
+  .fx .ico{width:36px;height:36px}
+  .set-row input.inp{flex:1;min-width:0}
+  .set-row small.muted{width:100%}
+  .catedit{grid-template-columns:42px 72px 1fr 28px;gap:6px}
+  .toast{bottom:calc(96px + env(safe-area-inset-bottom));max-width:90vw;text-align:center}
+  .gatebox{padding:28px 20px}
+}
+@media (max-width:380px){
+  .cats{grid-template-columns:repeat(5,1fr)}
+  .cat{font-size:11px}
+  .topbar h1{font-size:18px}
+}

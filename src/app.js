@@ -220,7 +220,7 @@ function guessCat(desc){
 }
 
 /* ---------- 共用元件 ---------- */
-function shiftMonth(n){ curYM = addMonth(curYM, n); sfx("tap"); ensureWindow(); render(); }
+function shiftMonth(n){ ovCat = null; curYM = addMonth(curYM, n); sfx("tap"); ensureWindow(); render(); }
 window.shiftMonth = shiftMonth;
 function monthNav(){
   return `<div class="monthnav">
@@ -236,34 +236,69 @@ function firstRunBanner(){
 }
 
 /* =================== 總覽 =================== */
+let ovScope = "all";      // 總覽分析範圍：all / shared / me / wife
+let ovCat = null;         // 類別排行中展開的類別
+window.setScope = sc => { ovScope = (ovScope === sc ? "all" : sc); ovCat = null; sfx("tap"); render(); };
+window.toggleOvCat = id => { ovCat = (ovCat === id ? null : id); sfx("tap"); render();
+  if (ovCat) setTimeout(() => document.querySelector(`.cbar[data-cat="${id}"]`)?.scrollIntoView({block:"nearest", behavior:"smooth"}), 30); };
+const scopeName = sc => sc === "all" ? "全部花費" : ownerName(sc);
+const PAYER_COLOR = {me:"var(--c-me)", wife:"var(--c-wife)", joint:"var(--c-joint)"};
+
 function pageOverview(){
   const st = stats(curYM), pv = stats(addMonth(curYM, -1));
-  const chg = pv.total ? (st.total - pv.total) / pv.total * 100 : null;
   const m = S.members;
+  const inScope = r => ovScope === "all" || r.owner === ovScope;
+  const sum = a => a.reduce((s, r) => s + Number(r.amount), 0);
+  const items = st.all.filter(inScope), recs = st.recs.filter(inScope);
+  const total = sum(items), pvTotal = sum(pv.all.filter(inScope));
+  const chg = pvTotal ? (total - pvTotal) / pvTotal * 100 : null;
   const parts = [["shared","家庭共同",st.shared,"var(--c-shared)"],["me",m.me+"個人",st.me,"var(--c-me)"],["wife",m.wife+"個人",st.wife,"var(--c-wife)"]];
-  const cats = Object.entries(st.byCat).sort((a, b) => b[1] - a[1]); const maxC = cats[0]?.[1] || 1;
+
+  // 花費組成：全部看「共同 vs 個人」；單一範圍看「誰付的」
+  let compTitle, comp;
+  if (ovScope === "all") { compTitle = "共同 vs 個人"; comp = parts; }
+  else { compTitle = "誰付的錢"; comp = ["me","wife","joint"].map(p => [p, payerName(p), sum(items.filter(r => r.payer === p)), PAYER_COLOR[p]]); }
+
+  const byCat = {}; items.forEach(r => byCat[r.cat] = (byCat[r.cat] || 0) + Number(r.amount));
+  const cats = Object.entries(byCat).sort((a, b) => b[1] - a[1]); const maxC = Math.max(...cats.map(c => c[1]), 1);
   const [y, mo] = curYM.split("-").map(Number); const days = new Date(y, mo, 0).getDate();
-  const daily = Array(days).fill(0); st.recs.forEach(r => daily[Number(r.date.slice(8)) - 1] += Number(r.amount));
+  const daily = Array(days).fill(0); recs.forEach(r => daily[Number(r.date.slice(8)) - 1] += Number(r.amount));
   const maxD = Math.max(...daily, 1); const isCur = curYM === todayStr().slice(0, 7); const td = new Date().getDate();
+  const scopeColor = {shared:"var(--c-shared)", me:"var(--c-me)", wife:"var(--c-wife)"}[ovScope];
+
+  const catDetail = id => {
+    const list = items.filter(r => r.cat === id).sort((a, b) => b.date.localeCompare(a.date) || Number(b.amount) - Number(a.amount));
+    const shown = list.slice(0, 40);
+    return `<div class="catlist">
+      ${shown.map(r => `<div class="cl-row" ${r.fixed ? `onclick="location.hash='#fixed'"` : `onclick="openEdit('${r.id}')"`}>
+        <span class="cl-d num">${Number(r.date.slice(5,7))}/${Number(r.date.slice(8))}</span>
+        <span class="cl-n">${esc(r.desc)}${r.fixed ? ' <span class="tag">固定</span>' : ""}${ovScope === "all" ? ` <span class="tag ${r.owner}">${esc(ownerName(r.owner))}</span>` : ""}</span>
+        <span class="cl-a num">${money(r.amount)}</span></div>`).join("")}
+      <div class="cl-foot"><span>${list.length} 筆</span>${list.length > shown.length ? `<span>（顯示前 ${shown.length} 筆）</span>` : ""}<span class="sp"></span><a href="#" onclick="gotoCat('${id}');return false">在明細頁查看 →</a></div>
+    </div>`;
+  };
+
   return `
   <div class="topbar"><h1>本月總覽</h1>${monthNav()}</div>
   ${firstRunBanner()}
   <div class="grid g-kpi">
-    <div class="card kpi hero"><div class="t">本月總花費</div><div class="v num">${money(st.total)}</div>
-      <div class="s">${chg === null ? "上月無資料" : `比上月 ${chg >= 0 ? "▲" : "▼"} ${Math.abs(chg).toFixed(0)}%`}・含計入的固定支出</div></div>
-    ${parts.map(p => `<div class="card kpi"><div class="t"><i class="swatch" style="background:${p[3]}"></i>${esc(p[1])}</div><div class="v num">${money(p[2])}</div><div class="s">${st.total ? (p[2] / st.total * 100).toFixed(0) : 0}% 的花費</div></div>`).join("")}
+    <div class="card kpi hero ${ovScope === "all" ? "sel" : ""}" onclick="setScope('all')" role="button"><div class="t">本月總花費</div><div class="v num">${money(st.total)}</div>
+      <div class="s">${(() => { const c = pv.total ? (st.total - pv.total) / pv.total * 100 : null; return c === null ? "上月無資料" : `比上月 ${c >= 0 ? "▲" : "▼"} ${Math.abs(c).toFixed(0)}%`; })()}・含計入的固定支出</div></div>
+    ${parts.map(p => `<div class="card kpi pick ${ovScope === p[0] ? "sel" : ""}" style="--sel:${p[3]}" onclick="setScope('${p[0]}')" role="button"><div class="t"><i class="swatch" style="background:${p[3]}"></i>${esc(p[1])}</div><div class="v num">${money(p[2])}</div><div class="s">${st.total ? (p[2] / st.total * 100).toFixed(0) : 0}% 的花費</div></div>`).join("")}
   </div>
-  <div class="card" style="margin-top:18px">
-    <h3>花費組成 <small>共同 vs 個人</small></h3>
-    <div class="stack">${st.total ? parts.filter(p => p[2] > 0).map(p => `<div style="flex:${p[2]};background:${p[3]}" data-tip="${esc(p[1])}：${money(p[2])}"></div>`).join("") : `<div style="flex:1;background:#f1f2f7"></div>`}</div>
-    <div class="legend">${parts.map(p => `<span><i class="swatch" style="background:${p[3]}"></i>${esc(p[1])} <b class="num">${money(p[2])}</b></span>`).join("")}</div>
+  ${ovScope === "all" ? `<div class="scope-hint">💡 點上面的「家庭共同」「${esc(m.me)}個人」「${esc(m.wife)}個人」，可以只看那一塊的分析</div>`
+    : `<div class="scope-bar" style="--sel:${scopeColor}"><i class="swatch" style="background:${scopeColor}"></i><span>正在看：<b>${esc(scopeName(ovScope))}</b>　<span class="num">${money(total)}</span>${chg === null ? "" : `<small>比上月 ${chg >= 0 ? "▲" : "▼"} ${Math.abs(chg).toFixed(0)}%</small>`}</span><span class="sp"></span><button class="kbtn grey sm" onclick="setScope('all')">看全部</button></div>`}
+  <div class="card" style="margin-top:14px">
+    <h3>花費組成 <small>${compTitle}</small></h3>
+    <div class="stack">${total ? comp.filter(p => p[2] > 0).map(p => `<div style="flex:${p[2]};background:${p[3]}" data-tip="${esc(p[1])}：${money(p[2])}"></div>`).join("") : `<div style="flex:1;background:#f1f2f7"></div>`}</div>
+    <div class="legend">${comp.map(p => `<span><i class="swatch" style="background:${p[3]}"></i>${esc(p[1])} <b class="num">${money(p[2])}</b></span>`).join("")}</div>
   </div>
   <div class="grid g-2" style="margin-top:18px">
     <div class="grid" style="align-content:start">
-      <div class="card"><h3>類別排行<span class="sp"></span><small>點類別看明細</small></h3>
-        ${cats.length ? cats.map(([id, v]) => { const c = catById(id); return `<div class="cbar" style="cursor:pointer" onclick="gotoCat('${id}')"><span class="nm"><span>${c.icon}</span>${esc(c.name)}</span><div class="tr"><div style="width:${v / maxC * 100}%"></div></div><span class="am num">${money(v)}<span class="pc">${(v / st.total * 100).toFixed(0)}%</span></span></div>`; }).join("") : emptyBox("這個月還沒有花費")}
+      <div class="card"><h3>類別排行${ovScope === "all" ? "" : ` <small>${esc(scopeName(ovScope))}</small>`}<span class="sp"></span><small>點類別看明細</small></h3>
+        ${cats.length ? cats.map(([id, v]) => { const c = catById(id); const open = ovCat === id; return `<div class="cbar ${open ? "open" : ""}" data-cat="${id}" style="cursor:pointer" onclick="toggleOvCat('${id}')"><span class="nm"><span class="chev">${open ? "▾" : "▸"}</span><span>${c.icon}</span>${esc(c.name)}</span><div class="tr"><div style="width:${v / maxC * 100}%"></div></div><span class="am num">${money(v)}<span class="pc">${total ? (v / total * 100).toFixed(0) : 0}%</span></span></div>${open ? catDetail(id) : ""}`; }).join("") : emptyBox("這個月還沒有花費")}
       </div>
-      <div class="card"><h3>每日花費<span class="sp"></span><small>不含固定支出</small></h3>
+      <div class="card"><h3>每日花費${ovScope === "all" ? "" : ` <small>${esc(scopeName(ovScope))}</small>`}<span class="sp"></span><small>不含固定支出</small></h3>
         <div class="daily">${daily.map((v, i) => `<div class="b ${isCur && i + 1 === td ? "today" : ""}" data-tip="${mo}/${i + 1}：${money(v)}"><i style="height:${v / maxD * 100}%"></i></div>`).join("")}</div>
         <div class="daily-x num"><span>1</span><span>${Math.ceil(days / 2)}</span><span>${days}</span></div>
       </div>
@@ -271,8 +306,8 @@ function pageOverview(){
     <div class="grid" style="align-content:start">
       ${settleCard(st)}
       <div class="card"><h3>📌 固定支出狀態<span class="sp"></span><a href="#fixed" style="font-size:12px">管理 →</a></h3>${S.fixed.map(f => fixedRow(f)).join("") || emptyBox("沒有固定支出")}</div>
-      <div class="card"><h3>最近紀錄<span class="sp"></span><a href="#records" style="font-size:12px">全部 →</a></h3>
-        ${st.recs.length ? sortRecs(st.recs).slice(0, 5).map(recRow).join("") : emptyBox("還沒有紀錄，按右下角「記一筆」")}</div>
+      <div class="card"><h3>最近紀錄${ovScope === "all" ? "" : ` <small>${esc(scopeName(ovScope))}</small>`}<span class="sp"></span><a href="#" onclick="gotoScopeRecords();return false" style="font-size:12px">全部 →</a></h3>
+        ${recs.length ? sortRecs(recs).slice(0, 5).map(recRow).join("") : emptyBox("這個範圍本月還沒有紀錄")}</div>
     </div>
   </div>`;
 }
@@ -350,7 +385,8 @@ function pageRecords(){
   </div>`;
 }
 window.setFilt = (k, v) => { filt[k] = v; sfx("tap"); render(); };
-window.gotoCat = id => { filt = {owner:"all", payer:"all", cat:id, q:""}; location.hash = "#records"; };
+window.gotoScopeRecords = () => { filt = {owner:ovScope, payer:"all", cat:"all", q:""}; location.hash = "#records"; };
+window.gotoCat = id => { filt = {owner:ovScope, payer:"all", cat:id, q:""}; location.hash = "#records"; };
 
 /* =================== 月底結算 =================== */
 function pageSettle(){

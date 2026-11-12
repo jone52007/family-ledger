@@ -272,8 +272,10 @@ function settleCard(st){
       <div><span>分攤比例</span><span>${esc(m.me)} ${S.splitMe}% ・ ${esc(m.wife)} ${100 - S.splitMe}%</span></div>
     </div></div>`;
 }
+// 共同帳戶自動扣款顯示「已繳」，由個人轉帳的顯示「已轉帳」
+const verbOf = f => (f.countMonthly && f.payer === "joint") ? "已繳" : "已轉帳";
 function fixedRow(f){
-  const log = S.fixedLog[curYM]?.[f.id]; const verb = f.countMonthly ? "已繳" : "已轉帳";
+  const log = S.fixedLog[curYM]?.[f.id]; const verb = verbOf(f);
   return `<div class="fx"><div class="ico">${f.icon}</div>
     <div class="info"><b>${esc(f.name)}</b> <span class="num" style="font-size:13px;color:var(--ink2)">${money(log?.amount ?? f.amount)}</span>
       <small>每月 ${f.day} 號・${esc(payerName(f.payer))}支付・${f.countMonthly ? '<span class="tag">計入每月花費</span>' : '<span class="tag off">不計入花費・獨立記錄</span>'}</small></div>
@@ -374,15 +376,15 @@ window.unsettle = () => { wr(deleteDoc(doc(db, "households", HID, "settled", cur
 /* =================== 固定支出 =================== */
 function pageFixed(){
   const y = curYM.slice(0, 4); const nowYM = todayStr().slice(0, 7);
-  const kidBlocks = S.fixed.filter(f => !f.countMonthly).map(f => {
+  const kidBlocks = S.fixed.map(f => {
     let yearSum = 0, allSum = 0;
     for (const ym in S.fixedLog) { const l = S.fixedLog[ym][f.id]; if (l?.done) { allSum += Number(l.amount); if (ym.startsWith(y)) yearSum += Number(l.amount); } }
     const months = Array.from({length:12}, (_, i) => { const ym = `${y}-${pad(i + 1)}`; const l = S.fixedLog[ym]?.[f.id]; const fut = ym > nowYM;
-      return `<div class="mon ${l?.done ? "done" : ""} ${fut ? "future" : ""}" ${fut ? "" : `onclick="toggleFixed('${f.id}',${!l?.done},'${ym}')"`}>
+      return `<div class="mon ${l?.done ? "done" : ""} ${fut && !l?.done ? "future" : ""}" onclick="toggleFixed('${f.id}',${!l?.done},'${ym}')">
         <div class="mn">${i + 1} 月</div><img src="${ASSET}${l?.done ? "Green/Double/check_round_color.png" : "Grey/Double/check_round_grey.png"}" alt=""><div class="ma num">${l?.done ? money(l.amount) : "—"}</div></div>`; }).join("");
-    return `<div class="card"><h3>${f.icon} ${esc(f.name)} 轉帳紀錄<span class="sp"></span><small>點月份可切換「已轉帳」</small></h3>
+    return `<div class="card"><h3>${f.icon} ${esc(f.name)} ${verbOf(f).slice(1)}紀錄<span class="sp"></span><small>點月份可切換「${verbOf(f)}」</small></h3>
       <div class="piggy" style="margin-bottom:16px">
-        <div><div style="font-size:13px;color:var(--ink2)">${y} 年已存</div><div class="big num">${money(yearSum)}</div></div>
+        <div><div style="font-size:13px;color:var(--ink2)">${y} 年${f.countMonthly ? "已付" : "已存"}</div><div class="big num">${money(yearSum)}</div></div>
         <div><div style="font-size:13px;color:var(--ink2)">累計總額</div><div class="big num" style="color:var(--green-d)">${money(allSum)}</div></div>
         <div style="font-size:13px;color:var(--ink3)">每月 ${f.day} 號・${money(f.amount)}・由 ${esc(payerName(f.payer))} 轉入</div>
       </div>

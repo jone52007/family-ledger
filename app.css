@@ -207,7 +207,7 @@ select.inp{padding-right:30px}
 .months{display:grid;grid-template-columns:repeat(6,1fr);gap:10px}
 .mon{border:3px solid var(--line);border-radius:14px;padding:10px 6px;text-align:center;background:#fff;cursor:pointer}
 .mon.done{border-color:var(--green);background:#ecfbf4}
-.mon.future{opacity:.45;cursor:default}
+.mon.future{opacity:.5}
 .mon .mn{font-size:12px;color:var(--ink3);font-weight:700}
 .mon img{width:30px;height:30px;margin:6px 0 2px}
 .mon .ma{font-size:11px}

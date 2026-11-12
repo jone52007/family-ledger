@@ -702,7 +702,18 @@ window.$ = $;
 window.addEventListener("hashchange", () => { sfx("tap"); if (location.hash === "#trash") loadTrash(); render(); scrollTo(0, 0); });
 window.addEventListener("online", renderStatus); window.addEventListener("offline", renderStatus);
 $("#fabBtn")?.addEventListener("click", () => { sfx("tap"); window.openAdd(); });
-$("#navAdd")?.addEventListener("click", e => { e.preventDefault(); sfx("tap"); window.openAdd(); });
+// 手機底部中間的「＋」：如果頁面是舊版快取沒有這顆按鈕，就自動補上
+(function ensureNavAdd(){
+  let btn = $("#navAdd");
+  if (!btn) {
+    const rec = document.querySelector('#nav a[data-p="records"]');
+    if (!rec) return;
+    rec.insertAdjacentHTML("afterend", `<a href="#" class="nav-add" id="navAdd" aria-label="記一筆" title="記一筆"><span class="plus"></span></a>`);
+    btn = $("#navAdd");
+    document.querySelector('#nav a[data-p="settings"]')?.classList.add("nav-settings");
+  }
+  btn.addEventListener("click", e => { e.preventDefault(); sfx("tap"); window.openAdd(); });
+})();
 // 觸控裝置：點長條圖等顯示數字
 document.addEventListener("click", e => {
   if (!matchMedia("(hover:none)").matches) return;

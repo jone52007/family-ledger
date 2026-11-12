@@ -419,7 +419,7 @@ function pageSettle(){
         ? `<div class="card" style="text-align:center"><img src="${ASSET}Green/Double/check_round_color.png" width="44" alt=""><div style="margin:8px 0 12px;font-weight:700">${ymLabel(curYM)} 已於 ${done.date} 結清</div><button class="kbtn grey sm" onclick="unsettle()">取消結清標記</button></div>`
         : `<button class="kbtn yellow lg" onclick="markSettled()">✔ 標記本月已結清</button>`) : ""}
       <div class="card"><h3>結算紀錄</h3>
-        ${history.length ? `<table class="tb">${history.map(([ym, h]) => `<tr><td class="num">${ymLabel(ym)}</td><td>${esc(m[h.from])} → ${esc(m[h.to])}</td><td class="r num">${money(h.amount)}</td></tr>`).join("")}</table>` : emptyBox("還沒有結算紀錄")}
+        ${history.length ? `<table class="tb tb-hist">${history.map(([ym, h]) => `<tr><td class="num">${ym.replace("-", "/")}</td><td>${esc(m[h.from])} → ${esc(m[h.to])}</td><td class="r num">${money(h.amount)}</td></tr>`).join("")}</table>` : emptyBox("還沒有結算紀錄")}
       </div>
     </div>
   </div>`;

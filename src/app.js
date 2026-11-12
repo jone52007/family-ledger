@@ -159,9 +159,13 @@ const catTint = id => CAT_TINT[Math.max(0, S.categories.findIndex(c => c.id === 
 const payerName = p => p === "joint" ? "共同帳戶" : S.members[p];
 const ownerName = o => o === "shared" ? "家庭共同" : S.members[o] + "個人";
 const monthRecords = ym => S.records.filter(r => ymOf(r.date) === ym);
+const fixedStartOf = f => f.startYM || (S.createdAt ? ymOf(new Date(S.createdAt).toISOString().slice(0, 10)) : "0000-00");
+// 固定支出要在該月打勾（已轉帳／已繳）才算進花費
+function fixedPendingForMonth(ym){
+  return S.fixed.filter(f => f.countMonthly && fixedStartOf(f) <= ym && !S.fixedLog[ym]?.[f.id]?.done);
+}
 function fixedForMonth(ym){
-  const startOf = f => f.startYM || (S.createdAt ? ymOf(new Date(S.createdAt).toISOString().slice(0, 10)) : "0000-00");
-  return S.fixed.filter(f => f.countMonthly && startOf(f) <= ym).map(f => ({id:"v-"+f.id, fixed:f, date:`${ym}-${pad(Math.min(f.day,28))}`, amount:(S.fixedLog[ym]?.[f.id]?.amount) ?? f.amount, desc:f.name, cat:f.cat, payer:f.payer, owner:"shared", inSettle:f.inSettle}));
+  return S.fixed.filter(f => f.countMonthly && fixedStartOf(f) <= ym && S.fixedLog[ym]?.[f.id]?.done).map(f => ({id:"v-"+f.id, fixed:f, date:`${ym}-${pad(Math.min(f.day,28))}`, amount:(S.fixedLog[ym]?.[f.id]?.amount) ?? f.amount, desc:f.name, cat:f.cat, payer:f.payer, owner:"shared", inSettle:f.inSettle}));
 }
 function stats(ym){
   const recs = monthRecords(ym), fx = fixedForMonth(ym), all = recs.concat(fx);
@@ -283,7 +287,9 @@ function pageOverview(){
   ${firstRunBanner()}
   <div class="grid g-kpi">
     <div class="card kpi hero ${ovScope === "all" ? "sel" : ""}" onclick="setScope('all')" role="button"><div class="t">本月總花費</div><div class="v num">${money(st.total)}</div>
-      <div class="s">${(() => { const c = pv.total ? (st.total - pv.total) / pv.total * 100 : null; return c === null ? "上月無資料" : `比上月 ${c >= 0 ? "▲" : "▼"} ${Math.abs(c).toFixed(0)}%`; })()}・含計入的固定支出</div></div>
+      <div class="s">${(() => { const c = pv.total ? (st.total - pv.total) / pv.total * 100 : null; return c === null ? "上月無資料" : `比上月 ${c >= 0 ? "▲" : "▼"} ${Math.abs(c).toFixed(0)}%`; })()}・含已轉帳的固定支出</div>
+      ${(() => { const pend = fixedPendingForMonth(curYM); if (!pend.length) return ""; const amt = pend.reduce((t, f) => t + Number(f.amount), 0);
+        return `<div class="pend" onclick="event.stopPropagation();location.hash='#fixed'">⏳ 尚未轉帳：${pend.map(f => esc(f.name)).join("、")}（${money(amt)}，打勾後才計入）</div>`; })()}</div>
     ${parts.map(p => `<div class="card kpi pick ${ovScope === p[0] ? "sel" : ""}" style="--sel:${p[3]}" onclick="setScope('${p[0]}')" role="button"><div class="t"><i class="swatch" style="background:${p[3]}"></i>${esc(p[1])}</div><div class="v num">${money(p[2])}</div><div class="s">${st.total ? (p[2] / st.total * 100).toFixed(0) : 0}% 的花費</div></div>`).join("")}
   </div>
   ${ovScope === "all" ? `<div class="scope-hint">💡 點上面的「家庭共同」「${esc(m.me)}個人」「${esc(m.wife)}個人」，可以只看那一塊的分析</div>`

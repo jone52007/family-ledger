@@ -1,5 +1,5 @@
 /* 讓 App 在沒網路時也能打開（資料本身由 Firestore 離線快取處理） */
-const CACHE = "family-ledger-20261112102748";
+const CACHE = "family-ledger-20261112102959";
 const SHELL = ["./", "index.html", "app.css", "app.js", "firebase-config.js", "manifest.webmanifest",
   "icons/icon-192.png", "assets/Font/KenneyFuture.ttf"];
 self.addEventListener("install", e => { e.waitUntil(caches.open(CACHE).then(c => c.addAll(SHELL)).then(() => self.skipWaiting())); });
@@ -11,8 +11,6 @@ self.addEventListener("fetch", e => {
     e.respondWith(fetch(e.request).then(r => { caches.open(CACHE).then(c => c.put("index.html", r.clone())); return r; }).catch(() => caches.match("index.html")));
     return;
   }
-  e.respondWith(caches.match(e.request).then(hit => {
-    const net = fetch(e.request).then(r => { if (r.ok) caches.open(CACHE).then(c => c.put(e.request, r.clone())); return r; }).catch(() => hit);
-    return hit || net;
-  }));
+  // 有網路時抓最新版，沒網路才用快取（避免要重新整理兩次才更新）
+  e.respondWith(fetch(e.request).then(r => { if (r.ok) { const c = r.clone(); caches.open(CACHE).then(x => x.put(e.request, c)); } return r; }).catch(() => caches.match(e.request)));
 });

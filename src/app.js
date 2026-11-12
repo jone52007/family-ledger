@@ -165,7 +165,8 @@ const payerName = p => p === "joint" ? "共同帳戶" : S.members[p];
 const ownerName = o => o === "shared" ? "家庭共同" : S.members[o] + "個人";
 const monthRecords = ym => S.records.filter(r => ymOf(r.date) === ym);
 function fixedForMonth(ym){
-  return S.fixed.filter(f => f.countMonthly && (!f.startYM || f.startYM <= ym)).map(f => ({id:"v-"+f.id, fixed:f, date:`${ym}-${pad(Math.min(f.day,28))}`, amount:(S.fixedLog[ym]?.[f.id]?.amount) ?? f.amount, desc:f.name, cat:f.cat, payer:f.payer, owner:"shared", inSettle:f.inSettle}));
+  const startOf = f => f.startYM || (S.createdAt ? ymOf(new Date(S.createdAt).toISOString().slice(0, 10)) : "0000-00");
+  return S.fixed.filter(f => f.countMonthly && startOf(f) <= ym).map(f => ({id:"v-"+f.id, fixed:f, date:`${ym}-${pad(Math.min(f.day,28))}`, amount:(S.fixedLog[ym]?.[f.id]?.amount) ?? f.amount, desc:f.name, cat:f.cat, payer:f.payer, owner:"shared", inSettle:f.inSettle}));
 }
 function stats(ym){
   const recs = monthRecords(ym), fx = fixedForMonth(ym), all = recs.concat(fx);

@@ -1,5 +1,5 @@
 /* 讓 App 在沒網路時也能打開（資料本身由 Firestore 離線快取處理） */
-const CACHE = "family-ledger-20261111175103";
+const CACHE = "family-ledger-20261112094920";
 const SHELL = ["./", "index.html", "app.css", "app.js", "firebase-config.js", "manifest.webmanifest",
   "icons/icon-192.png", "assets/Font/KenneyFuture.ttf"];
 self.addEventListener("install", e => { e.waitUntil(caches.open(CACHE).then(c => c.addAll(SHELL)).then(() => self.skipWaiting())); });

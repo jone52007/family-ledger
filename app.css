@@ -437,3 +437,4 @@ table.tb.tb-hist tr>:first-child{width:92px !important;white-space:nowrap}
 table.tb.tb-hist tr>:last-child{width:96px !important}
 @media (max-width:860px){table.tb.tb-hist tr>:first-child{width:78px !important}table.tb.tb-hist tr>:last-child{width:86px !important}}
 .kpi.hero .pend{margin-top:10px;font-size:12px;background:rgba(255,255,255,.18);border:1px solid rgba(255,255,255,.35);border-radius:10px;padding:6px 10px;color:#fff;cursor:pointer;line-height:1.5}
+.payer-note{float:right;font-weight:600;color:var(--ink3);font-size:12px}

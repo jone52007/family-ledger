@@ -261,7 +261,7 @@ function pageOverview(){
   // 花費組成：全部看「共同 vs 個人」；單一範圍看「誰付的」
   let compTitle, comp;
   if (ovScope === "all") { compTitle = "共同 vs 個人"; comp = parts; }
-  else { compTitle = "誰付的錢"; comp = ["me","wife","joint"].map(p => [p, payerName(p), sum(items.filter(r => r.payer === p)), PAYER_COLOR[p]]); }
+  else { compTitle = "誰付的錢"; comp = ["me","wife"].map(p => [p, payerName(p), sum(items.filter(r => r.payer === p)), PAYER_COLOR[p]]); }
 
   const byCat = {}; items.forEach(r => byCat[r.cat] = (byCat[r.cat] || 0) + Number(r.amount));
   const cats = Object.entries(byCat).sort((a, b) => b[1] - a[1]); const maxC = Math.max(...cats.map(c => c[1]), 1);
@@ -331,7 +331,6 @@ function settleCard(st){
     <div class="rows">
       <div><span>${esc(m.me)} 先付的共同支出</span><b class="num">${money(st.paidMe)}</b></div>
       <div><span>${esc(m.wife)} 先付的共同支出</span><b class="num">${money(st.paidWife)}</b></div>
-      <div><span>共同帳戶支付（不需結算）</span><span class="num">${money(st.paidJoint)}</span></div>
       <div><span>分攤比例</span><span>${esc(m.me)} ${S.splitMe}% ・ ${esc(m.wife)} ${100 - S.splitMe}%</span></div>
     </div></div>`;
 }
@@ -378,7 +377,7 @@ function pageRecords(){
   <div class="card">
     <div class="filters">
       <div class="seg small" style="flex:2;min-width:280px">${segBtn("owner","all","全部","c-blue")}${segBtn("owner","shared","家庭共同","c-green")}${segBtn("owner","me",esc(m.me)+"個人","c-blue")}${segBtn("owner","wife",esc(m.wife)+"個人","c-red")}</div>
-      <select class="inp" onchange="setFilt('payer',this.value)"><option value="all">所有付款人</option>${["me","wife","joint"].map(p => `<option value="${p}" ${filt.payer === p ? "selected" : ""}>${esc(payerName(p))}付</option>`).join("")}</select>
+      <select class="inp" onchange="setFilt('payer',this.value)"><option value="all">所有付款人</option>${["me","wife"].map(p => `<option value="${p}" ${filt.payer === p ? "selected" : ""}>${esc(payerName(p))}付</option>`).join("")}</select>
       <select class="inp" onchange="setFilt('cat',this.value)"><option value="all">所有類別</option>${S.categories.map(c => `<option value="${c.id}" ${filt.cat === c.id ? "selected" : ""}>${c.icon} ${esc(c.name)}</option>`).join("")}</select>
       <input class="inp" id="qInput" style="flex:1;min-width:140px" placeholder="🔍 搜尋描述" value="${esc(filt.q)}">
     </div>
@@ -412,7 +411,7 @@ function pageSettle(){
           <tr><td>${esc(m.me)} 應負擔 ${S.splitMe}%</td><td class="r num">${money(st.shouldMe)}</td></tr>
           <tr><td>${esc(m.wife)} 應負擔 ${100 - S.splitMe}%</td><td class="r num">${money(st.settleBase - st.shouldMe)}</td></tr>
         </table>
-        <p style="font-size:12px;color:var(--ink3);margin:10px 0 0;line-height:1.6">・只有「家庭共同」且由個人先付的支出會列入結算；共同帳戶付的、個人支出都不列入。<br>・固定支出可在「固定支出」頁決定要不要列入結算。分攤比例可在「設定」調整。</p>
+        <p style="font-size:12px;color:var(--ink3);margin:10px 0 0;line-height:1.6">・只有「家庭共同」的支出會列入結算，個人支出不列入。<br>・固定支出可在「固定支出」頁決定要不要列入結算。分攤比例可在「設定」調整。</p>
       </div>
       <div class="grid g-half">
         <div class="card"><h3><span class="avatar av-me sm">${esc(m.me[0])}</span>${esc(m.me)} 付的</h3>${table("me")}</div>
@@ -467,14 +466,14 @@ function pageFixed(){
   <div style="margin-top:18px" class="grid">${kidBlocks}</div>`;
 }
 window.openFixed = id => {
-  const f = id ? S.fixed.find(x => x.id === id) : {id:"", name:"", icon:"📌", cat:"home", amount:0, day:1, payer:"joint", countMonthly:true, inSettle:false};
+  const f = id ? S.fixed.find(x => x.id === id) : {id:"", name:"", icon:"📌", cat:"live", amount:0, day:1, payer:who, countMonthly:true, inSettle:false};
   showModal(`<h2>${id ? "編輯" : "新增"}固定支出<button class="x" onclick="closeModal()"><img src="${ASSET}Red/Double/icon_cross.png" alt="關閉"></button></h2>
     <div class="row2"><div class="field"><label>名稱</label><input class="inp w100" id="fName" value="${esc(f.name)}" placeholder="例如：房貸"></div>
     <div class="field"><label>圖示（emoji）</label><input class="inp w100" id="fIcon" value="${esc(f.icon)}"></div></div>
     <div class="row2"><div class="field"><label>每月金額</label><input class="inp num w100" id="fAmt" type="number" inputmode="numeric" value="${f.amount}"></div>
     <div class="field"><label>每月幾號</label><input class="inp num w100" id="fDay" type="number" min="1" max="31" value="${f.day}"></div></div>
     <div class="field"><label>類別</label><select class="inp w100" id="fCat">${S.categories.map(c => `<option value="${c.id}" ${c.id === f.cat ? "selected" : ""}>${c.icon} ${esc(c.name)}</option>`).join("")}</select></div>
-    <div class="field"><label>誰支付</label><div class="seg" id="fPayer">${["me","wife","joint"].map(p => `<button data-v="${p}">${esc(payerName(p))}</button>`).join("")}</div></div>
+    <div class="field"><label>誰支付</label><div class="seg" id="fPayer">${["me","wife"].map(p => `<button data-v="${p}">${esc(payerName(p))}</button>`).join("")}</div></div>
     <div class="field" style="display:flex;flex-direction:column;gap:10px">
       <label class="kcheck"><input type="checkbox" id="fCount" ${f.countMonthly ? "checked" : ""}><i></i>計入每月花費（例如房貸）</label>
       <label class="kcheck"><input type="checkbox" id="fSettle" ${f.inSettle ? "checked" : ""}><i></i>列入月底共同支出結算（由個人先付、要平分時勾選）</label>
@@ -613,6 +612,8 @@ window.openEdit = id => {
   if (id && !r) return;
   const today = todayStr();
   draft = r ? {...r, manual:true, ai:null} : {id:null, date:curYM === today.slice(0, 7) ? today : `${curYM}-01`, amount:"", desc:"", cat:"other", payer:who, owner:"shared", note:"", manual:false, ai:null};
+  if (!["me","wife"].includes(draft.payer)) draft.payer = who;
+  if (draft.owner !== "shared" && draft.owner !== draft.payer) draft.owner = draft.payer;
   const m = S.members;
   showModal(`<h2>${r ? "✏️ 編輯紀錄" : "📝 記一筆"}<button class="x" onclick="closeModal()"><img src="${ASSET}Red/Double/icon_cross.png" alt="關閉"></button></h2>
     <div class="field"><div class="amtbox"><span class="num">$</span><input id="dAmt" type="number" inputmode="decimal" placeholder="0" value="${draft.amount}"></div></div>
@@ -620,8 +621,8 @@ window.openEdit = id => {
       <datalist id="descList">${[...new Set(S.records.map(x => x.desc))].slice(-80).map(d => `<option value="${esc(d)}">`).join("")}</datalist>
       <div class="aihint" id="aiHint"></div></div>
     <div class="field"><label>類別</label><div class="cats" id="dCats"></div></div>
-    <div class="field"><label>這筆是誰的花費？</label><div class="seg" id="dOwner"><button data-v="shared">🏠 家庭共同</button><button data-v="me">${esc(m.me)}個人</button><button data-v="wife">${esc(m.wife)}個人</button></div></div>
-    <div class="field"><label>誰付的錢？</label><div class="seg" id="dPayer"><button data-v="me">${esc(m.me)}</button><button data-v="wife">${esc(m.wife)}</button><button data-v="joint">共同帳戶</button></div></div>
+    <div class="field"><label>這筆是共同還是個人花費？<span class="payer-note">${draft.payer === who ? `由${esc(m[who])}付款` : `${esc(m[draft.payer] || "")}記的帳・由${esc(m[draft.payer] || "")}付款`}</span></label>
+      <div class="seg" id="dOwner"><button data-v="shared">🏠 家庭共同</button><button data-v="${draft.payer}">👤 ${draft.payer === who ? "我個人" : esc(m[draft.payer]) + "個人"}</button></div></div>
     <div class="row2"><div class="field"><label>日期</label><input class="inp num w100" type="date" id="dDate" value="${draft.date}"></div>
       <div class="field"><label>備註（選填）</label><input class="inp w100" id="dNote" value="${esc(draft.note || "")}"></div></div>
     ${r ? `<div class="note">最後修改：${esc(r.updatedBy || r.createdBy || "")} ${r.updatedAt ? new Date(r.updatedAt).toLocaleString("zh-TW") : ""}</div>` : ""}
@@ -629,7 +630,6 @@ window.openEdit = id => {
       ${r ? `<button class="kbtn red" style="flex:.6" onclick="delRec('${r.id}')">刪除</button>` : `<button class="kbtn grey" onclick="saveRec(true)">儲存並再記一筆</button>`}
       <button class="kbtn green" onclick="saveRec(false)">儲存</button></div>`);
   segBind("#dOwner", {shared:"c-green", me:"c-blue", wife:"c-red"}, v => draft.owner = v, draft.owner);
-  segBind("#dPayer", {me:"c-blue", wife:"c-red", joint:"c-yellow"}, v => draft.payer = v, draft.payer);
   $("#dDesc").addEventListener("input", e => { draft.desc = e.target.value; autoCat(); });
   $("#dAmt").addEventListener("keydown", e => { if (e.key === "Enter") $("#dDesc").focus(); });
   $("#dDesc").addEventListener("keydown", e => { if (e.key === "Enter") window.saveRec(false); });

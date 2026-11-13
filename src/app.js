@@ -11,6 +11,7 @@ import {
   doc, collection, query, where, onSnapshot, setDoc, updateDoc, deleteDoc, getDocs, addDoc,
   writeBatch, deleteField, FieldPath, serverTimestamp
 } from "firebase/firestore";
+import { getMessaging, getToken, deleteToken, isSupported as messagingSupported } from "firebase/messaging";
 
 const CFG = window.FL_CONFIG || {};
 const ASSET = "assets/PNG/";
@@ -545,6 +546,7 @@ function pageSettings(){
       <div class="card"><h3>🤖 已學會的分類<span class="sp"></span><small>手動改類別後會記住</small></h3>
         ${learned.length ? learned.map(([k, v]) => `<div class="fx" style="padding:6px 0"><div class="info">「${esc(k)}」→ ${catById(v).icon} ${esc(catById(v).name)}</div><button class="iconbtn" data-k="${esc(k)}" onclick="forget(this.dataset.k)"><img src="${ASSET}Red/Double/icon_cross.png" alt="刪除"></button></div>`).join("") : emptyBox("還沒有。記帳時手動換類別，系統就會記住")}
       </div>
+      ${notifyCard()}
       <div class="card"><h3>👤 帳號</h3><div class="set-row"><span>目前登入：<b>${esc(user?.email)}</b>（${esc(m[who])}）</span><span class="sp" style="flex:1"></span><button class="kbtn grey sm" onclick="logout()">登出</button></div></div>
     </div>
     <div class="card" style="align-self:start"><h3>🏷️ 類別與自動判斷關鍵字<span class="sp"></span><button class="kbtn green sm" onclick="addCat()">＋ 類別</button></h3>
@@ -603,6 +605,88 @@ window.importJSON = file => {
   };
   rd.readAsText(file);
 };
+
+
+/* =================== 推播通知 =================== */
+const NOTIFY_TYPES = [
+  ["house", "🏦 房貸轉帳提醒", "每月 5 號 17:00，還沒勾「已轉帳」才提醒"],
+  ["dodo", "🐷 多多費轉帳提醒", "每月 5 號 17:00，還沒勾「已轉帳」才提醒"],
+  ["settle", "🤝 月底結算提醒", "每月 1 號 10:00，提醒確認上個月的數字"],
+  ["daily", "📝 每日記帳提醒", "每天 21:00"]
+];
+let notifyState = {status:"checking", prefs:null, busy:false};
+const isStandalone = () => matchMedia("(display-mode: standalone)").matches || navigator.standalone === true;
+const isIOS = () => /iPhone|iPad|iPod/.test(navigator.userAgent);
+async function tokenId(t){ const h = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(t)); return [...new Uint8Array(h)].slice(0, 16).map(b => b.toString(16).padStart(2, "0")).join(""); }
+async function swReady(){
+  const r = (await navigator.serviceWorker.getRegistration()) || await navigator.serviceWorker.register("sw.js");
+  return await Promise.race([navigator.serviceWorker.ready, new Promise((_, rej) => setTimeout(() => rej(new Error("Service worker 還沒準備好，請重新開啟 App")), 10000))]).catch(e => { if (r && r.active) return r; throw e; });
+}
+async function refreshNotifyStatus(){
+  try {
+    if (!("Notification" in window) || !("serviceWorker" in navigator) || !(await messagingSupported())) {
+      notifyState.status = (isIOS() && !isStandalone()) ? "need-home" : "unsupported";
+    } else if (Notification.permission === "denied") notifyState.status = "denied";
+    else if (Notification.permission === "granted") {
+      notifyState.status = "on";
+      const id = localStorage.getItem("fl-push-id");
+      if (id) { const snap = await getDocs(query(col("tokens"), where("id", "==", id))); snap.forEach(d => notifyState.prefs = d.data().prefs); }
+      await registerPush(true);   // 每次開啟都更新代碼（代碼可能會換）
+    } else notifyState.status = "off";
+  } catch(e) { console.warn(e); notifyState.status = "unsupported"; }
+  if (location.hash === "#settings") render();
+}
+async function registerPush(silent){
+  const reg = await swReady();
+  const token = await getToken(getMessaging(app), {vapidKey:CFG.vapidKey, serviceWorkerRegistration:reg});
+  if (!token) throw new Error("無法取得推播代碼");
+  const id = await tokenId(token);
+  const prev = localStorage.getItem("fl-push-id");
+  const prefs = notifyState.prefs || {house:true, dodo:true, settle:true, daily:true};
+  await setDoc(doc(col("tokens"), id), {id, token, who, email:user.email, ua:navigator.userAgent.slice(0, 160), prefs, updatedAt:Date.now()}, {merge:true});
+  if (prev && prev !== id) wr(deleteDoc(doc(col("tokens"), prev)));
+  localStorage.setItem("fl-push-id", id);
+  notifyState.prefs = prefs; notifyState.status = "on";
+  if (!silent) toast("通知已開啟 🔔");
+}
+window.enableNotify = async () => {
+  if (notifyState.busy) return; notifyState.busy = true; render();
+  try {
+    const perm = await Notification.requestPermission();
+    if (perm !== "granted") { notifyState.status = perm === "denied" ? "denied" : "off"; toast("沒有開啟通知權限"); }
+    else await registerPush(false);
+  } catch(e) { console.error(e); toast("開啟通知失敗：" + (e.code || e.message)); }
+  notifyState.busy = false; render();
+};
+window.disableNotify = async () => {
+  const id = localStorage.getItem("fl-push-id");
+  try { await deleteToken(getMessaging(app)); } catch(e) {}
+  if (id) wr(deleteDoc(doc(col("tokens"), id)));
+  localStorage.removeItem("fl-push-id"); notifyState.prefs = null; notifyState.status = "off-by-user"; render(); toast("這支手機不會再收到通知");
+};
+window.setNotifyPref = (k, on) => {
+  const id = localStorage.getItem("fl-push-id"); if (!id) return;
+  notifyState.prefs = {house:true, dodo:true, settle:true, daily:true, ...notifyState.prefs, [k]:on};
+  wr(updateDoc(doc(col("tokens"), id), {prefs:notifyState.prefs, updatedAt:Date.now()}));
+};
+window.testNotify = async () => {
+  const reg = await swReady();
+  reg.showNotification("家庭記帳本", {body:"通知測試成功！之後會在設定的時間提醒你 🔔", icon:"icons/icon-192.png", badge:"icons/icon-192.png", tag:"test"});
+};
+function notifyCard(){
+  const st = notifyState.status;
+  let body;
+  if (st === "checking") body = `<p class="note">檢查中…</p>`;
+  else if (st === "need-home") body = `<p class="note">iPhone 要從<b>主畫面的「家庭記帳本」圖示</b>打開，才能開啟通知。請先用 Safari 的「分享 → 加入主畫面」，再從主畫面開啟這一頁。</p>`;
+  else if (st === "unsupported") body = `<p class="note">這個瀏覽器不支援推播通知。iPhone 請從主畫面的圖示開啟。</p>`;
+  else if (st === "denied") body = `<p class="note">通知權限被關掉了。請到 iPhone「設定 → 通知 → 家庭記帳本」打開「允許通知」，再回來這頁。</p>`;
+  else if (st === "off" || st === "off-by-user") body = `<p class="note">開啟後，這支手機會收到下面的定時提醒。你和${esc(S.members[who === "me" ? "wife" : "me"])}的手機要各自開啟。</p>
+    <button class="kbtn green" ${notifyState.busy ? "disabled" : ""} onclick="enableNotify()">🔔 開啟通知</button>`;
+  else body = `<p class="note" style="margin-bottom:6px">✅ 這支手機已開啟通知（${esc(S.members[who])}）。可以分別關掉不想收的提醒：</p>
+    ${NOTIFY_TYPES.map(([k, name, desc]) => `<div class="set-row"><label class="kcheck" style="flex:1"><input type="checkbox" ${notifyState.prefs?.[k] !== false ? "checked" : ""} onchange="setNotifyPref('${k}',this.checked)"><i></i><span><b>${name}</b><br><small class="muted">${desc}</small></span></label></div>`).join("")}
+    <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:12px"><button class="kbtn sm" onclick="testNotify()">傳送測試通知</button><button class="kbtn grey sm" onclick="disableNotify()">這支手機不要通知</button></div>`;
+  return `<div class="card"><h3>🔔 推播通知</h3>${body}</div>`;
+}
 
 /* =================== 記一筆 =================== */
 let draft = null;
@@ -781,7 +865,7 @@ else {
     const k = emailKey(u.email);
     if (!k) { showGate("denied"); return; }
     who = k; hideGate(); showGate("loading"); startData();
-    const wait = setInterval(() => { if (SET) { clearInterval(wait); hideGate(); render(); if (location.hash === "#trash") loadTrash(); } }, 100);
+    const wait = setInterval(() => { if (SET) { clearInterval(wait); hideGate(); render(); refreshNotifyStatus(); if (location.hash === "#trash") loadTrash(); } }, 100);
   });
 }
-if ("serviceWorker" in navigator && location.protocol === "https:") navigator.serviceWorker.register("sw.js").catch(() => {});
+if ("serviceWorker" in navigator && (location.protocol === "https:" || location.hostname === "localhost")) navigator.serviceWorker.register("sw.js").catch(() => {});

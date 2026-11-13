@@ -9,6 +9,8 @@ window.FL_CONFIG = {
     messagingSenderId: "91546661383",
     appId: "1:91546661383:web:2df422df6b7aa7c2a830a2"
   },
+  // 網頁推播的公開金鑰（VAPID，公開資訊）
+  vapidKey: "BNg8GW2vubb8kRv1MetewZvH7y_2kiaLVEYioei7LhgIJAqb6b1u02CjxBrI0rZG3NKmSk82YhCmcscNJvaSgMk",
   // 可以使用這本帳本的兩個 Google 帳號
   emails: {
     me: "jone1525@gmail.com",       // 家華
